@@ -50,14 +50,20 @@ when 'log'
   cls.new(msg, data).log!
 
 when 'run'
-  case subject
-  when 'importer'
-    TAM::Record::Log::Importer.new.run!
-  else
-    raise "tam: #{verb} : unknown subject #{subject.inspect}"
+  TAM::Record::Process.wrap(:args => args, :verb => verb, :subject => subject) do
+    case subject
+    when 'importer'
+      TAM::Record::Log::Importer.new._run!
+    when 'process_watcher'
+      require 'tam/process_watcher'
+      TAM::ProcessWatcher.new._run!
+    else
+      raise "tam: #{verb} : unknown subject #{subject.inspect}"
+    end
   end
 else
   raise "tam: unknown verb #{verb.inspect}"
 end
 
 exit 0
+
