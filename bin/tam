@@ -1,0 +1,63 @@
+#!/usr/bin/ruby
+# -*- ruby -*-
+args = ARGV.dup
+if debug = args.first == '--debug'
+  args.shift
+  require 'rubygems'
+  case RUBY_VERSION
+  when /^1\.9\./
+    gem 'ruby-debug19'
+  else
+    gem 'ruby-debug'
+  end
+  require 'ruby-debug'
+end
+
+$:.unshift(File.expand_path('../../lib', __FILE__))
+require 'tam/record'
+require 'tam/record/log'
+
+if debug
+  $stderr.puts "#{ARGV.inspect}"
+  # debugger
+end
+
+verb = args.shift
+subject = args.shift
+
+case verb
+when 'log'
+  msg = args.shift
+  data = { }
+  until args.empty?
+    k = args.shift.to_sym
+    v = args.shift
+    # If it smells like an Integer, make it so.
+    if k != :t and vi = v.to_i and vi.to_s == v
+      v = vi
+    end
+    data[k] = v
+  end
+
+  cls = case subject
+  when 'generic'
+    TAM::Record::Generic
+  when 'error'
+    TAM::Record::Error
+  else
+    raise "tam: #{verb} : unknown subject #{subject.inspect}"
+  end
+  cls.new(msg, data).log!
+
+when 'run'
+  case subject
+  when 'importer'
+    TAM::Record::Log::Importer.new.run!
+  else
+    raise "tam: #{verb} : unknown subject #{subject.inspect}"
+  end
+else
+  raise "tam: unknown verb #{verb.inspect}"
+end
+
+exit 0
