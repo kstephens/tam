@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 # -*- ruby -*-
-args = ARGV.dup
+=begin
 if debug = args.first == '--debug'
   args.shift
   require 'rubygems'
@@ -12,32 +12,31 @@ if debug = args.first == '--debug'
   end
   require 'ruby-debug'
 end
+=end
 
 $:.unshift(File.expand_path('../../lib', __FILE__))
 require 'tam/record'
 require 'tam/record/log'
+
+module TAM
+  class Main
+    attr_accessor :args, :verb, :debug, :subject
+
+    def run!
+      self.args = ARGV.dup
 
 if debug
   $stderr.puts "#{ARGV.inspect}"
   # debugger
 end
 
-verb = args.shift
-subject = args.shift
+self.verb = args.shift
+self.subject = args.shift
 
 case verb
 when 'log'
   msg = args.shift
-  data = { }
-  until args.empty?
-    k = args.shift.to_sym
-    v = args.shift
-    # If it smells like an Integer, make it so.
-    if k != :t and vi = v.to_i and vi.to_s == v
-      v = vi
-    end
-    data[k] = v
-  end
+  data = parse_opts! args
 
   cls = case subject
   when 'generic'
@@ -56,7 +55,8 @@ when 'run'
       TAM::Record::Log::Importer.new._run!
     when 'process_watcher'
       require 'tam/process_watcher'
-      TAM::ProcessWatcher.new._run!
+      opts = parse_opts!
+      TAM::ProcessWatcher.new(opts)._run!
     else
       raise "tam: #{verb} : unknown subject #{subject.inspect}"
     end
@@ -65,5 +65,26 @@ else
   raise "tam: unknown verb #{verb.inspect}"
 end
 
+self
+end
+
+def parse_opts! args = self.args
+  data = { }
+  until args.empty?
+    k = args.shift.to_sym
+    v = args.shift
+    # If it smells like an Integer, make it so.
+    if k != :t and vi = v.to_i and vi.to_s == v
+      v = vi
+    end
+    data[k] = v
+  end
+  data
+end
+
+end
+end
+
+TAM::Main.new.run!
 exit 0
 

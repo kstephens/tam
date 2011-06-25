@@ -2,13 +2,36 @@ require 'tam'
 
 module TAM
   class ProcessWatcher
-    attr_accessor :state_file, :verbose
+    attr_accessor :state_file, :interval, :verbose
 
-    def initialize
+    def initialize opts = nil
+      @interval = 10
       @verbose = 0
       @state_file = "/var/run/tam/process_watcher.state"
       @ps = [ ]
       @p_by_pid = { }
+      opts && opts.each do | k, v |
+        send(:"#{k}=", v)
+      end
+      require 'pp'; pp self
+    end
+
+    def run!
+      _run!
+    end
+
+    def _run!
+      state! :restore
+      @running = true
+      while @running
+        poll!
+        if true || @verbose >= 1 and @ps_started > 0 || @ps_exited > 0
+          $stderr.puts "#{self.class} #{$$} #{@now.iso8601(3)} : #{@ps.size} processes (#{@ps_started} started) (#{@ps_exited} exited)"
+        end
+        sleep @interval
+      end
+      state! :save
+      self
     end
 
     def get_current_processes
@@ -46,6 +69,8 @@ module TAM
       ps.delete_if { | np | np[:pid] == 1 or np[:pid] == $$ or np[:ppid] == $$ }
       p_by_pid = { }
 
+      @ps_started = @ps_exited = 0
+
       ps.each do | np |
         p_by_pid[np[:pid]] = np
 
@@ -67,6 +92,7 @@ module TAM
             new(:start, data)
           np[:s_rec] = rec
           recs << rec
+          @ps_started += 1
         end
       end
 
@@ -80,6 +106,7 @@ module TAM
             new(:end, :puuid => data ? data[:puuid] : 'UNKNOWN').
             completes!(cp[:s_rec])
           recs << rec
+          @ps_exited += 1
         end
       end
 
@@ -122,27 +149,12 @@ module TAM
           state.instance_variables.each do | ivar |
             instance_variable_set(ivar, state.instance_variable_get(ivar))
           end
-          $stderr.puts "#{$$} #{self.class} : restored from #{@state_file} : #{@ps.size} processes saved at #{@now.iso8601(3)}"
+          $stderr.puts "#{self.class} #{$$} : restored from #{@state_file} : #{@ps.size} processes at #{@now.iso8601(3)}"
         end
       end
       self
     end
 
-    def run!
-      _run!
-    end
-
-    def _run!
-      state! :restore
-      @running = true
-      while @running
-        poll!
-        $stderr.puts "====" if @verbose >= 1
-        sleep(@interval || 10)
-      end
-      state! :save
-      self
-    end
   end
 end
 
