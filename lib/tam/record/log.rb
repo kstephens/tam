@@ -92,7 +92,7 @@ module TAM
 
       def write! rec
         str = rec.to_json
-        $stderr.puts "#{$$} #{str}"
+        $stderr.puts "#{$$} #{str}" if @verbose >= 2
         str = "db.tam.save(#{str});\n".freeze
         if @paused > 0
           @queue_mutex.synchronize do
@@ -151,20 +151,22 @@ module TAM
       end
 
       class Importer
-        attr_accessor :interval, :dir
+        attr_accessor :interval, :dir, :verbose
+
         def initialize
           @interval = INTERVAL
           @dir = DIR
+          @verbose = 0
         end
 
         def _log msg = nil
           msg ||= yield if block_given?
           case msg
           when ::Exception
-            Record::Error.new(msg).log!
+            Record::Error.new(msg, :in_class => self.class.name)
           else
-            Record::Generic.new("#{self} : #{msg}").log!
-          end
+            Record::Generic.new(msg, :in_class => self.class.name)
+          end.log!
           self
         end
 
@@ -179,55 +181,60 @@ module TAM
           # Start with any abandoned files.
           @jsfiles ||= Dir["#{@dir}/*.js"] 
           while @running
-            @err = nil
-            now = ::Time.now
-            now_i = now.to_i
-            @jsfiles ||= [ ]
-            begin
-              scan = "#{@dir}/*.log" 
-              _log { "scanning #{scan}" }
-              Dir[scan].each do | logfile |
-                # $stderr.puts "logfile = #{logfile.inspect}"
-                if File.basename(logfile) =~ %r{-(\d+)\.log\Z}
-                  expires = $1.to_i
-                  if now_i > expires + 1
-                    File.open(logfile) do | fh |
-                      jsfile = "#{logfile}.js"
-                      File.rename(logfile, jsfile)
-                      @jsfiles << jsfile
-                      _log { "prepared #{jsfile.inspect} #{File.size(jsfile)} bytes" }
-                    end
+            poll!
+            sleep @interval
+          end
+          self
+        end
+        
+        def poll!
+          @err = nil
+          now = ::Time.now
+          now_i = now.to_i
+          @jsfiles ||= [ ]
+          begin
+            scan = "#{@dir}/*.log" 
+            _log { "scanning #{scan}" } if @verbose >= 3
+            Dir[scan].each do | logfile |
+              # $stderr.puts "logfile = #{logfile.inspect}"
+              if File.basename(logfile) =~ %r{-(\d+)\.log\Z}
+                expires = $1.to_i
+                if now_i > expires + 1
+                  File.open(logfile) do | fh |
+                    jsfile = "#{logfile}.js"
+                    File.rename(logfile, jsfile)
+                    @jsfiles << jsfile
+                    _log { "prepared #{jsfile.inspect} #{File.size(jsfile)} bytes" } if @verbose >= 4
                   end
                 end
               end
+            end
+          rescue ::Exception => @err
+            _log(@err)
+          end
+          
+          yield self if block_given?
+          
+          unless @jsfiles.empty?
+            cmd = "mongo #{@jsfiles * " "}"
+            begin
+              system(cmd) or raise "#{cmd} failed"
+              _log { "processed #{@jsfiles.inspect}" } if @verbose >= 4
+              @jsfiles.each do | jsfile |
+                File.unlink(jsfile)
+              end
+              @jsfiles = nil
             rescue ::Exception => @err
+              $stderr.puts "ERROR: #{@err.inspect}\n  #{@err.backtrace * "\n  "}"
               _log(@err)
             end
-
-            yield self if block_given?
-
-            unless @jsfiles.empty?
-              cmd = "mongo #{@jsfiles * " "}"
-              begin
-                system(cmd) or raise "#{cmd} failed"
-                _log { "processed #{@jsfiles.inspect}" }
-                @jsfiles.each do | jsfile |
-                  File.unlink(jsfile)
-                end
-                @jsfiles = nil
-              rescue ::Exception => @err
-                $stderr.puts "ERROR: #{@err.inspect}\n  #{@err.backtrace * "\n  "}"
-                _log(@err)
-              end
-            end
-
-            sleep @interval
           end
 
           self
         end
-      end
-    end
-  end #
-end #
+      end # class
+    end # class
+  end # class
+end # module
+
 
