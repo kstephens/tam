@@ -89,7 +89,7 @@ module TAM
       NOW = 'now'.freeze
 
       def puuid
-        @puuid ||= h[:puuid] || Record.puuid
+        @puuid ||= @data[:puuid] || Record.puuid
       end
 
       def completes! rec
@@ -167,31 +167,39 @@ module TAM
         super(:"process.#{k}", data)
       end
 
-      @@current_pid = @@current = nil
-      @@parent = nil
-      def self.current
+      def self.current data = nil
         if @@current_pid != $$
           @@current_pid = $$
           @@parent = @@current
           @@current = nil
         end
         unless @@current
-          @@current = self.new(:start).parent!(@@parent).log!
+          data ||= { }
+          data[:_id] = data[:puuid] = Record.puuid
+          @@current = self.new(:start, data).parent!(@@parent).log!
           at_exit do
             self.new(:end).completes!(@@current).log!
           end
         end
         @@current
       end
+      @@current_pid = @@current = nil
+      @@parent = nil
 
-      def self.wrap
+      def self.wrap data = nil
         raise ArgumentError, "expected block" unless block_given?
-        proc_begin = current
+        return yield if @wrapped > 0
+        @wrapped += 1
+        proc_begin = current(data)
         yield
       rescue ::Exception => exc
         TAM::Record::Error.new(exc).parent!(proc_begin).log!
         raise
+      ensure
+        @wrapped -= 1
+        Log.current.flush! if @wrapped == 0
       end
+      @wrapped ||= 0
 
       def host
         @host ||= @data[:host] || Record.hostname
@@ -233,7 +241,7 @@ module TAM
         when String
           h[:msg] ||= @e
         else
-          h[:msg] ||= e_msg
+          h[:msg] ||= msg
           h[:e_class] ||= e_class
           h[:e_bt] ||= e_bt
         end
@@ -245,7 +253,7 @@ module TAM
     class Generic < Base
       def initialize msg = nil, data = nil
         super(:generic, data)
-        @msg = msg
+        @msg = msg && msg.to_s
       end
       def to_hash
         h = super
