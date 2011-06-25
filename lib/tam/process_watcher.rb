@@ -2,6 +2,8 @@ require 'tam'
 
 module TAM
   class ProcessWatcher
+    attr_accessor :state_file, :verbose
+
     def initialize
       @verbose = 0
       @state_file = "/var/run/tam/process_watcher.state"
@@ -120,6 +122,7 @@ module TAM
           state.instance_variables.each do | ivar |
             instance_variable_set(ivar, state.instance_variable_get(ivar))
           end
+          $stderr.puts "#{$$} #{self.class} : restored from #{@state_file} : #{@ps.size} processes saved at #{@now.iso8601(3)}"
         end
       end
       self
