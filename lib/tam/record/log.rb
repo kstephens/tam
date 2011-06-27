@@ -25,7 +25,7 @@ module TAM
         @write_mutex = Mutex.new
         @interval = INTERVAL
         @dir = DIR
-        @verbose = 1
+        @verbose = 0
         opts and opts.each do | k, v |
           send(:"#{k}=", v)
         end
