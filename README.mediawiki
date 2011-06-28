@@ -165,10 +165,10 @@ Additions to Base Schema; implies <code>kind</code> = <code>error</code>.
 
 == Kind Taxonomy ==
 
-* process - process level monitoring 
-** process.start - A process started (or was forked)
-** process.end   - A process ended (or died or was killed)
-* error
+* <code>process</code>  - process level monitoring 
+** <code>process.start</code>  - A process started (or was forked)
+** <code>process.end</code>    - A process ended (or died or was killed)
+* <code>error</code> 
 
 = Usage =
 
