@@ -80,9 +80,15 @@ Additions to Base Schema; implies <code>kind</code> = <code>process.start</code>
 |-
 |<code>progname</code>
 |String
-|argv[0]
+|<code>argv[0]</code> or <code>$0</code>
 |required
-|Name of program.
+|Name of program or script.
+|-
+|<code>args</code>
+|Array of Strings
+|
+|
+|Arguments to program or script.
 |-
 |<code>app</code>
 |String
