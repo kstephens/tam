@@ -25,13 +25,13 @@ JSON is "schemaless" encoding.  However TAM defines layered logical schemas to u
 |-
 |kind 
 |String
-|dotted hierarchy
+|Dotted hierarchy
 |required
-|Identifies the kind of event.
+|Identifies the kind of event.  Events are talied by kind.
 |-
 |msg
 |String
-|arbitrary stringdotted hierarchy
+|Arbitrary string
 |optional
 |Humanly-readable message.  Should not encode information that could be stored in other attributes.
 |-
@@ -177,7 +177,6 @@ Additions to Base Schema
 Example:
 
 <pre>
- cnuapp@kurt-4 $ stable/cnuapp/bin/cnu_env ruby tam/lib/tam/record.rb
 # Process Start 
 db.tam.save({"progname":"tam/lib/tam/record.rb",
              "t":ISODate("2011-06-17T22:43:07.279Z"),
@@ -209,6 +208,19 @@ db.tam.save({
 });
 </pre>
 
-== Examples ==
+= Ruby Examples =
+
+= Tools =
+
+bin/tam provides a basic command line interface to TAM.
+
+== bin/tam run importer ==
+
+Starts a TAM::Log::Importer
+
+== bin/tam run process_watcher ==
+
+Starts a TAM::ProcessWatcher
+
 
 
