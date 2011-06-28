@@ -148,17 +148,24 @@ module TAM
         self
       end
 
-      # A Log::Importer will search for log files that have "expired".
+      # A Log::Importer will poll for log files that have "expired" under #dir.
       # The importer will process each expired log file and will subsequently
       # delete them.
+      # Files to be processed are renamed "*.js" an directly imported by the
+      # mongo client program.
       # Use "bin/tam run importer" to start an importer.
       class Importer
-        attr_accessor :interval, :dir, :verbose
+        attr_accessor :database, :password, :interval, :dir, :verbose
 
-        def initialize
+        def initialize opts = nil
           @interval = INTERVAL
           @dir = DIR
           @verbose = 0
+          if opts
+            opts.each do | k, v |
+              send(:"#{k}=", v)
+            end
+          end
         end
 
         def _log msg = nil
@@ -218,9 +225,11 @@ module TAM
           yield self if block_given?
           
           unless @jsfiles.empty?
-            cmd = "mongo #{@jsfiles * " "}"
+            cmd = "mongo #{database} #{@jsfiles * " "}"
             begin
-              system(cmd) or raise "#{cmd} failed"
+              env = { }
+              env["MONGO_PASSWORD"] = password if password 
+              system_with_env(env, cmd) or raise "#{cmd} failed"
               _log { "processed #{@jsfiles.inspect}" } if @verbose >= 4
               @jsfiles.each do | jsfile |
                 File.unlink(jsfile)
@@ -234,6 +243,23 @@ module TAM
 
           self
         end
+
+        def system_with_env env, *args
+          saved_env = { }
+          env.each do | k, v |
+            saved_env = ENV[k]
+          end
+          system(*args)
+        ensure
+          saved_env.each do | k, v |
+            if v.nil?
+              ENV.delete(k)
+            else
+              ENV[k] = v
+            end
+          end
+        end
+
       end # class
     end # class
   end # class
