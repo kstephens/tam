@@ -178,10 +178,10 @@ Example:
 
 <pre>
 # Process Start 
-db.tam.save({"progname":"tam/lib/tam/record.rb",
+db.tam.save({"progname":"myscript.rb",
              "t":ISODate("2011-06-17T22:43:07.279Z"),
              "kind":"process.start",
-             "host":"kurt-4.dev.cashnetusa.com",
+             "host":"kurt-4.mydomain.com",
              "puuid":"7709f945-3365-4ef5-8cc8-b11f3d39d00b",
              "_id":"7709f945-3365-4ef5-8cc8-b11f3d39d00b-1",
              "pid":5143
@@ -193,7 +193,7 @@ db.tam.save({
              "kind":"error",
              "e_class":"TypeError"
              "e_msg":"I WANT A COOKIE!",
-             "e_by":["tam/lib/tam/record.rb:137"],
+             "e_by":["myscript.rb:137"],
 
              "puuid":"7709f945-3365-4ef5-8cc8-b11f3d39d00b",
 });
@@ -221,6 +221,5 @@ Starts a TAM::Log::Importer
 == bin/tam run process_watcher ==
 
 Starts a TAM::ProcessWatcher
-
 
 
