@@ -1,13 +1,23 @@
 require 'tam'
 
 module TAM
+  # A ProcessWatcher polls `ps -eF` every #interval seconds.
+  # It compairs the last list of processes with the current
+  # list of processes and generates
+  # TAM::Record::Process :start and :end records.
+  #
+  # At each interval, ProcessWatchers saves its state to
+  # #state_file.  When a ProcessWatcher is started it
+  # will attempt to reload from the state_file.
+  #
+  # Use "bin/tam run importer" to start a process watcher.
   class ProcessWatcher
     attr_accessor :state_file, :interval, :verbose
 
     def initialize opts = nil
       @interval = 10
       @verbose = 0
-      @state_file = "/var/run/tam/process_watcher.state"
+      @state_file = "/tmp/tam_process_watcher.state"
       @ps = [ ]
       @p_by_pid = { }
       opts && opts.each do | k, v |
