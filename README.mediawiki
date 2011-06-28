@@ -150,17 +150,17 @@ Additions to Base Schema; implies <code>kind</code> = <code>error</code>.
 !Required?
 !Description
 |-
-|<code>e_class</code>
-|String
-|exc.class.name
-|
-|Name of exception class.
-|-
 |<code>msg</code>
 |String
 |exc.message
 |
 |Exception message; as implied by base schema above.
+|-
+|<code>e_class</code>
+|String
+|exc.class.name
+|
+|Name of exception class.
 |-
 |<code>e_bt</code>
 |Array of Strings
