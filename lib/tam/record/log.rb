@@ -6,11 +6,9 @@ module TAM
   module Record
     # A Log will write to a unique ".log" file under #dir for
     # #interval seconds.  After the interval the log file has "expired"
-    # The file name contains the UNIX epoch of when it will not
-    # be logged into any more.
-    # A Log::Importer will search for log files that have "expired".
-    # The import will process each expired log file and will subsequently
-    # delete them.
+    # and will not be written to anymore; a new log file is opened.
+    # The log file name contains the UNIX epoch when it "expires".
+    #
     class Log
       INTERVAL = 60
       DIR= "/var/log/tam".freeze
@@ -150,6 +148,10 @@ module TAM
         self
       end
 
+      # A Log::Importer will search for log files that have "expired".
+      # The importer will process each expired log file and will subsequently
+      # delete them.
+      # Use "bin/tam run importer" to start an importer.
       class Importer
         attr_accessor :interval, :dir, :verbose
 
