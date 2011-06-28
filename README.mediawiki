@@ -69,7 +69,7 @@ Used to relate cause-and-effect.
 
 == Process Schema ==
 
-Additions to Base Schema
+Additions to Base Schema; implies @kind@ = @process.start@, @process.end@.
 
 {|
 !Name
@@ -135,7 +135,7 @@ Additions to Base Schema
 
 == Error/Exception Schema ==
 
-Additions to Base Schema
+Additions to Base Schema; implies @kind@ = @error@.
 
 {|
 !Name
