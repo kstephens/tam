@@ -154,7 +154,7 @@ Additions to Base Schema; implies <code>kind</code> = <code>error</code>.
 |String
 |exc.message
 |
-|Exception message.
+|Exception message; as implied by base schema above.
 |-
 |<code>e_bt</code>
 |Array of Strings
