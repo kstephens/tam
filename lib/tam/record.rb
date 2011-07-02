@@ -146,7 +146,7 @@ module TAM
         @t = t
       end
 
-      def to_json
+      def to_json options = nil
         # $stderr.puts "@t = #{@t.inspect}"
         case @t
         when ::Time
