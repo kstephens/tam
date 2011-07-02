@@ -19,6 +19,9 @@ module TAM
       self.subject = args.shift
       
       case verb
+      when 'help'
+        usage
+
       when 'log'
         msg = args.shift
         data = parse_opts! args
@@ -53,10 +56,30 @@ module TAM
       self
     end
     
+    def usage
+      $stderr.puts <<"END"
+tam - generic event loging
+
+tam log TYPE
+
+tam log generic MSG [ --ATTR VALUE ] ...
+
+tam log error MSG [ --ATTR VALUE ] ...
+
+tam run THING
+
+tam run importer [ --dir DIR ]
+
+tam run process_watcher [ --state_file filename ]
+
+END
+    end
+
     def parse_opts! args = self.args
       data = { }
       until args.empty?
-        k = args.shift.to_sym
+        k = args.shift.sub(/^--?/, '')
+        k = k.to_sym
         v = args.shift
         # If it smells like an Integer, make it so.
         if k != :t and vi = v.to_i and vi.to_s == v

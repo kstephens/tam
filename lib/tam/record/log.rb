@@ -89,7 +89,7 @@ module TAM
       end
 
       def write! rec
-        str = rec.to_json
+        str = rec._to_json
         $stderr.puts "#{$$} #{str}" if @verbose >= 2
         str = "db.tam.save(#{str});\n".freeze
         if @paused > 0

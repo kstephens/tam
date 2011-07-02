@@ -123,9 +123,11 @@ module TAM
         h
       end
 
-      def to_json
-        @to_json ||=
-          to_hash.to_json.freeze
+      def _to_json
+        debugger rescue nil
+        @_to_json ||=
+          JSON.generate(to_hash).
+          freeze
       end
 
       def log!
@@ -168,6 +170,7 @@ module TAM
       end
 
       def self.current data = nil
+        @@current_mutex.synchronize do
         if @@current_pid != $$
           @@current_pid = $$
           @@parent = @@current
@@ -182,8 +185,10 @@ module TAM
           end
         end
         @@current
+        end
       end
       @@current_pid = @@current = nil
+      @@current_mutex = Mutex.new
       @@parent = nil
 
       def self.wrap data = nil
@@ -193,6 +198,7 @@ module TAM
         proc_begin = current(data)
         yield
       rescue ::Exception => exc
+        $stderr.puts "#{self}: ERROR #{exc.inspect}\n  #{exc.backtrace * "\n  "}"
         TAM::Record::Error.new(exc).parent!(proc_begin).log!
         raise
       ensure
