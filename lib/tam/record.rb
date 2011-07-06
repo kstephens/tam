@@ -124,7 +124,6 @@ module TAM
       end
 
       def _to_json
-        debugger rescue nil
         @_to_json ||=
           JSON.generate(to_hash).
           freeze
