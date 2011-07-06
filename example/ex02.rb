@@ -15,7 +15,7 @@ TAM::Record::Process.wrap do
   o = Log4r::TamOutputter.new("tam_outputter")
   logger.add(o)
   logger.info do
-    { :msg => "this use logged in", :user_id => 1234 }
+    { :msg => "this user logged in", :user_id => 1234 }
   end
   logger.error do
     { :msg => "error: user failed", :user_id => 1234 }
