@@ -7,6 +7,7 @@ require 'json'
 require 'socket' # .gethostname
 require 'time' # .parse, #iso8601
 require 'thread' # Mutex
+require 'tam/uuid'
 
 module TAM
   module Record
@@ -18,11 +19,9 @@ module TAM
           @@puuid_pid = $$
           @@puuid = nil
         end
-        @@puuid ||= 
-          File.read(PROC_SYS_FILE).chomp.freeze
+        @@puuid ||= TAM::UUID.generate
       end
     end
-    PROC_SYS_FILE = "/proc/sys/kernel/random/uuid".freeze
     @@puuid_mutex = Mutex.new
     @@puuid_pid = nil
 

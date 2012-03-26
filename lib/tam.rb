@@ -1,7 +1,6 @@
 module TAM
   EMPTY_Array = [ ].freeze
   EMPTY_Hash  = { }.freeze
-
 end
 
 require 'tam/record'
